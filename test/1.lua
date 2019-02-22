@@ -1,10 +1,13 @@
-i = 0
-while i < 10 do
-    j = 0
-    while j < 10 do
-        print("i="..i, "j="..j)
-        if j == 5 then break end
-        j = j + 1
+local i = 0
+print("start with i = ", i)
+
+function faf()
+    while i < 10 do
+        print("faf i = ", i)
+        i = i + 1
     end
-    i = i + 1
 end
+
+faf()
+
+print("end with i = ", i)

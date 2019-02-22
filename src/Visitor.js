@@ -1,5 +1,6 @@
 const BaseVisitor = require('../antlr_build/LuaVisitor').LuaVisitor;
 const symbols = require('./symbols');
+const RuntimeError = require('./RuntimeError');
 
 class Visitor extends BaseVisitor{
     constructor(...args){
@@ -14,6 +15,7 @@ class Visitor extends BaseVisitor{
         this.break_loop = [];
     }
 
+
     insideLoopPush(){
         this.inside_loop.push(true);
     }
@@ -26,6 +28,7 @@ class Visitor extends BaseVisitor{
         return !!this.inside_loop[this.inside_loop.length - 1];
     }
 
+
     breakLoopPush(){
         this.break_loop.push(true);
     }
@@ -37,6 +40,7 @@ class Visitor extends BaseVisitor{
     breakLoop(){
         return !!this.break_loop[this.break_loop.length - 1];
     }
+
 
     memoryStackPush(){
         this.memory_stack.push(new Map);
@@ -52,13 +56,7 @@ class Visitor extends BaseVisitor{
             : false;
     }
 
-    getLeftRightHandExp(ctx){
-        return [0, 1]
-            .map(ctx.exp.bind(ctx))
-            .map(this.visit.bind(this));
-    }
-
-    memoryStackSearch(name){
+    memoryStackGet(name){
         for(let i = this.memory_stack.length - 1; i >= 0; i--)
             if(this.memory_stack[i].has(name))
                 return this.memory_stack[i].get(name);
@@ -66,15 +64,40 @@ class Visitor extends BaseVisitor{
         return undefined;
     }
 
+    memoryStackDeclare(name){
+        this.memoryStack().set(name, undefined);
+    }
+
+    memoryStackSet(name, value){
+        for(let i = this.memory_stack.length - 1; i >= 0; i--)
+            if(this.memory_stack[i].has(name))
+                return this.memory_stack[i].set(name, value);
+    }
+
+    memoryStackLocalHas(name){
+        return this.memoryStack().has(name);
+    }
+
+    checkVarExists(name){
+        if(this.memoryStackGet(name) === undefined)
+            throw new RuntimeError(`Variable "${name}" does not exists`);
+    }
+
+
+    getLeftRightHandExp(ctx){
+        return [0, 1]
+            .map(ctx.exp.bind(ctx))
+            .map(this.visit.bind(this));
+    }
+
+
     visitChunk(ctx){
-        this.memoryStackPush();
-
         this.visitChildren(ctx);
-
-        this.memoryStackPop();
     }
 
     visitBlock(ctx){
+        this.memoryStackPush();
+
         let i = 0;
         let stat;
         let value = undefined;
@@ -90,6 +113,8 @@ class Visitor extends BaseVisitor{
 
         if(ctx.retstat())
             value = ctx.retstat().accept(this);
+
+        this.memoryStackPop();
 
         return value;
     }
@@ -133,11 +158,26 @@ class Visitor extends BaseVisitor{
         this.insideLoopPop();
     }
 
+    visitStatVarDeclaration(ctx){
+        const name = ctx.variable().accept(this);
+
+        if(this.memoryStackLocalHas(name))
+            throw new RuntimeError(`Local variable "${name}" already exists`);
+
+        this.memoryStackDeclare(name);
+
+        if(ctx.exp(0))
+            this.memoryStackSet(name, ctx.exp(0).accept(this));
+    }
+
     visitStatAssignment(ctx){
         const id = ctx.variable().accept(this);
-        const val = ctx.exp().accept(this);
 
-        this.memoryStack().set(id, val);
+        this.checkVarExists(id);
+
+        const val = ctx.exp(0).accept(this);
+
+        this.memoryStackSet(id, val);
 
         return val;
     }
@@ -151,7 +191,7 @@ class Visitor extends BaseVisitor{
             this.memoryStackPush();
 
             for(let i = 0; i < Math.min(args.length, params.length); i++)
-                this.memoryStack().set(params[i], args[i]);
+                this.memoryStackSet(params[i], args[i]);
 
             const val = block.accept(this);
 
@@ -160,7 +200,8 @@ class Visitor extends BaseVisitor{
             return val;
         };
 
-        this.memoryStack().set(name, fn);
+        this.memoryStackDeclare(name);
+        this.memoryStackSet(name, fn);
         return fn;
     }
 
@@ -187,13 +228,13 @@ class Visitor extends BaseVisitor{
 
     visitFunctioncall(ctx){
         const fn_name = ctx.variable().accept(this);
-        const fn = this.memoryStackSearch(fn_name);
+        const fn = this.memoryStackGet(fn_name);
         const args = ctx.args().accept(this);
         return fn(args);
     }
 
     visitArgs(ctx){
-        return ctx.explist().accept(this);
+        return ctx.explist() ? ctx.explist().accept(this) : [];
     }
 
     visitExplist(ctx){
@@ -218,7 +259,7 @@ class Visitor extends BaseVisitor{
 
     visitVarexp(ctx) {
         if(ctx.variable())
-            return this.memoryStackSearch(ctx.variable().accept(this));
+            return this.memoryStackGet(ctx.variable().accept(this));
         else if(ctx.functioncall())
             return ctx.functioncall().accept(this);
         else

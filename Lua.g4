@@ -10,6 +10,7 @@ block
 
 stat
     : ';' #statSemicolon
+    | 'local' variable ('=' exp)? #statVarDeclaration
     | variable '=' exp #statAssignment
     | 'function' funcname funcbody #statFunction
     | functioncall #statFunctioncall
