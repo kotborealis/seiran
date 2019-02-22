@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "antlr4": "^4.7.2"
+    "antlr4": "^4.7.2",
+    "chen.js": "^1.0.24"
   }
 }
