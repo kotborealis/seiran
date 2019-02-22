@@ -10,7 +10,7 @@ class Visitor extends LuaVisitor{
         super(...args);
 
         this.mem = new Memory;
-        this.mem.internal.set("print", (args) => console.log(...args));
+        this.mem.global.set("print", (args) => console.log(...args));
 
         this.return = new ReturnManager;
     }
@@ -138,9 +138,6 @@ class Visitor extends LuaVisitor{
 
     visitStatAssignment(ctx){
         const id = ctx.variable().accept(this);
-
-        this.mem.checkVarExists(id);
-
         const val = ctx.exp(0).accept(this);
 
         this.mem.setVar(id, val);

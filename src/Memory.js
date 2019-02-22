@@ -1,10 +1,10 @@
+const RuntimeError = require('./RuntimeError');
+
 module.exports = class{
     constructor(){
         this.memory_stack = [new Map];
 
-        this.internal = this.memory_stack[0];
-
-        this.internal.set("print", (args) => console.log(...args));
+        this.global = this.memory_stack[0];
     }
 
     push(){
@@ -37,14 +37,11 @@ module.exports = class{
         for(let i = this.memory_stack.length - 1; i >= 0; i--)
             if(this.memory_stack[i].has(name))
                 return this.memory_stack[i].set(name, value);
+
+        this.global.set(name, value);
     }
 
     hasLocalVar(name){
         return this.top().has(name);
-    }
-
-    checkVarExists(name){
-        if(this.getVar(name) === undefined)
-            throw new RuntimeError(`Variable "${name}" does not exists`);
     }
 };

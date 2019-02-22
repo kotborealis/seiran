@@ -1,16 +1,10 @@
-function factorial(n)
-  if n == 0 then
-    return 1;
-  else
-    return n * factorial(n - 1);
-  end
+x = 10
+i = 0
+
+while i<=x do
+  local x = i*2    -- local to the while body
+  print(x)         --> 2, 4, 6, 8, ...
+  i = i + 1
 end
 
-local i = 0
-while i < 10 do
-    i = i + 1
-    print(i)
-    if i == 5 then break end
-end
-
-print(factorial(10))
+print(x)
