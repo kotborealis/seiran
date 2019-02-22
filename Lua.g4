@@ -10,11 +10,10 @@ block
 
 stat
     : ';' #statSemicolon
-    | varlist '=' explist #statAssignment
+    | variable '=' exp #statAssignment
     | functioncall #statFunctioncall
     | 'break' #statBreak
     | 'while' exp 'do' block 'end' #statWhile
-    | 'repeat' block 'until' exp #statRepatUntil
     | 'if' exp 'then' block ('elseif' exp 'then' block)* ('else' block)? 'end' #statIf
     | 'for' NAME '=' exp ',' exp (',' exp)? 'do' block 'end' #statFor
     | 'for' namelist 'in' explist 'do' block 'end' #statForIn
@@ -27,10 +26,6 @@ retstat
 
 funcname
     : NAME
-    ;
-
-varlist
-    : variable (',' variable)*
     ;
 
 namelist
@@ -48,7 +43,6 @@ exp
     | number #expNumber
     | string #expString
     | '...' #expVarArgs
-    | functiondef #expFunctionDef
     | <assoc=right> exp operatorPower exp #expPow
     | operatorUnary exp #expUnaryOp
     | exp operatorMulDivMod exp #expMulDivOp
@@ -57,7 +51,6 @@ exp
     | exp operatorComparison exp #expComparsionOp
     | exp operatorAnd exp #expAndOp
     | exp operatorOr exp #expOrOp
-    | exp operatorBitwise exp #expBitwiseOp
     ;
 
 functioncall
@@ -74,10 +67,6 @@ variable
 
 args
     : '(' explist? ')' | string
-    ;
-
-functiondef
-    : 'function' funcbody
     ;
 
 funcbody
@@ -105,9 +94,6 @@ operatorAddSub
 
 operatorMulDivMod
     : '*' | '/' | '%' | '//';
-
-operatorBitwise
-    : '&' | '|' | '~' | '<<' | '>>';
 
 operatorUnary
     : 'not' | '#' | '-' | '~';
