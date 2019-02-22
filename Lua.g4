@@ -17,7 +17,6 @@ stat
     | 'while' exp 'do' block 'end' #statWhile
     | 'if' exp 'then' block ('elseif' exp 'then' block)* ('else' block)? 'end' #statIf
     | 'for' NAME '=' exp ',' exp (',' exp)? 'do' block 'end' #statFor
-    | 'for' namelist 'in' explist 'do' block 'end' #statForIn
     ;
 
 retstat
@@ -58,7 +57,7 @@ functioncall
     ;
 
 varexp
-    : variable | functioncall | '(' exp ')'
+    : variable | '(' exp ')'
     ;
 
 variable
