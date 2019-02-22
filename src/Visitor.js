@@ -64,6 +64,14 @@ class Visitor extends BaseVisitor{
         return ctx.exp() ? ctx.exp().accept(this) : undefined;
     }
 
+    visitStatIf(ctx){
+        let i = 0;
+        for(let exp = ctx.exp(i); exp; exp = ctx.exp(++i))
+            if(exp.accept(this))
+                return ctx.block(i).accept(this);
+        ctx.block(i).accept(this);
+    }
+
     visitStatAssignment(ctx){
         const id = ctx.variable().accept(this);
         const val = ctx.exp().accept(this);

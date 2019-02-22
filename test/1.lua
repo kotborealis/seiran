@@ -1,5 +1,10 @@
-function sum(a, b)
-    return a + b
-end
+a = 0
+b = 0
 
-print(sum(30, sum(10, 20)))
+if a then
+    print("MUDA")
+elseif b then
+    print("AAAAAAAA")
+else
+    print("KING CRIMSN")
+end
