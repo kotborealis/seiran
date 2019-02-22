@@ -1,20 +1,19 @@
 const BaseVisitor = require('../antlr_build/LuaVisitor').LuaVisitor;
 const symbols = require('./symbols');
 const RuntimeError = require('./RuntimeError');
+const Memory = require('./Memory');
 
 class Visitor extends BaseVisitor{
     constructor(...args){
         super(...args);
 
-        this.memory_stack = [new Map];
-        this.internal = this.memory_stack[0];
+        this.mem = new Memory;
 
-        this.internal.set("print", (args) => console.log(...args));
+        this.mem.internal.set("print", (args) => console.log(...args));
 
         this.inside_loop = [];
         this.break_loop = [];
     }
-
 
     insideLoopPush(){
         this.inside_loop.push(true);
@@ -42,48 +41,6 @@ class Visitor extends BaseVisitor{
     }
 
 
-    memoryStackPush(){
-        this.memory_stack.push(new Map);
-    }
-
-    memoryStackPop(){
-        this.memory_stack.pop();
-    }
-
-    memoryStack(){
-        return this.memory_stack.length
-            ? this.memory_stack[this.memory_stack.length - 1]
-            : false;
-    }
-
-    memoryStackGet(name){
-        for(let i = this.memory_stack.length - 1; i >= 0; i--)
-            if(this.memory_stack[i].has(name))
-                return this.memory_stack[i].get(name);
-
-        return undefined;
-    }
-
-    memoryStackDeclare(name){
-        this.memoryStack().set(name, undefined);
-    }
-
-    memoryStackSet(name, value){
-        for(let i = this.memory_stack.length - 1; i >= 0; i--)
-            if(this.memory_stack[i].has(name))
-                return this.memory_stack[i].set(name, value);
-    }
-
-    memoryStackLocalHas(name){
-        return this.memoryStack().has(name);
-    }
-
-    checkVarExists(name){
-        if(this.memoryStackGet(name) === undefined)
-            throw new RuntimeError(`Variable "${name}" does not exists`);
-    }
-
-
     getLeftRightHandExp(ctx){
         return [0, 1]
             .map(ctx.exp.bind(ctx))
@@ -96,7 +53,7 @@ class Visitor extends BaseVisitor{
     }
 
     visitBlock(ctx){
-        this.memoryStackPush();
+        this.mem.push();
 
         let i = 0;
         let stat;
@@ -114,7 +71,7 @@ class Visitor extends BaseVisitor{
         if(ctx.retstat())
             value = ctx.retstat().accept(this);
 
-        this.memoryStackPop();
+        this.mem.pop();
 
         return value;
     }
@@ -159,10 +116,10 @@ class Visitor extends BaseVisitor{
     }
 
     visitStatFor(ctx){
-        this.memoryStackPush();
+        this.mem.push();
 
         const name = ctx.NAME(0).getText();
-        this.memoryStackDeclare(name);
+        this.mem.declareVar(name);
 
         const from = ctx.exp(0).accept(this);
         const to = ctx.exp(1).accept(this);
@@ -171,7 +128,7 @@ class Visitor extends BaseVisitor{
         this.insideLoopPush();
 
         for(let counter = from; counter !== to; counter += step){
-            this.memoryStackSet(name, counter);
+            this.mem.setVar(name, counter);
 
             ctx.block(0).accept(this);
 
@@ -183,29 +140,29 @@ class Visitor extends BaseVisitor{
 
         this.insideLoopPop();
 
-        this.memoryStackPop();
+        this.mem.pop();
     }
 
     visitStatVarDeclaration(ctx){
         const name = ctx.variable().accept(this);
 
-        if(this.memoryStackLocalHas(name))
+        if(this.mem.hasLocalVar(name))
             throw new RuntimeError(`Local variable "${name}" already exists`);
 
-        this.memoryStackDeclare(name);
+        this.mem.declareVar(name);
 
         if(ctx.exp(0))
-            this.memoryStackSet(name, ctx.exp(0).accept(this));
+            this.mem.setVar(name, ctx.exp(0).accept(this));
     }
 
     visitStatAssignment(ctx){
         const id = ctx.variable().accept(this);
 
-        this.checkVarExists(id);
+        this.mem.checkVarExists(id);
 
         const val = ctx.exp(0).accept(this);
 
-        this.memoryStackSet(id, val);
+        this.mem.setVar(id, val);
 
         return val;
     }
@@ -216,22 +173,22 @@ class Visitor extends BaseVisitor{
         const fn = (args) => {
             const [params, block] = ctx.funcbody().accept(this);
 
-            this.memoryStackPush();
+            this.mem.push();
 
             for(let i = 0; i < Math.min(args.length, params.length); i++){
-                this.memoryStackDeclare(params[i], args[i]);
-                this.memoryStackSet(params[i], args[i]);
+                this.mem.declareVar(params[i], args[i]);
+                this.mem.setVar(params[i], args[i]);
             }
 
             const val = block.accept(this);
 
-            this.memoryStackPop();
+            this.mem.pop();
 
             return val;
         };
 
-        this.memoryStackDeclare(name);
-        this.memoryStackSet(name, fn);
+        this.mem.declareVar(name);
+        this.mem.setVar(name, fn);
         return fn;
     }
 
@@ -258,7 +215,7 @@ class Visitor extends BaseVisitor{
 
     visitFunctioncall(ctx){
         const fn_name = ctx.variable().accept(this);
-        const fn = this.memoryStackGet(fn_name);
+        const fn = this.mem.getVar(fn_name);
         const args = ctx.args().accept(this);
         return fn(args);
     }
@@ -289,7 +246,7 @@ class Visitor extends BaseVisitor{
 
     visitVarexp(ctx) {
         if(ctx.variable())
-            return this.memoryStackGet(ctx.variable().accept(this));
+            return this.mem.getVar(ctx.variable().accept(this));
         else if(ctx.functioncall())
             return ctx.functioncall().accept(this);
         else
