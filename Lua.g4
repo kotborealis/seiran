@@ -53,7 +53,7 @@ exp
     ;
 
 functioncall
-    : varexp args
+    : variable args
     ;
 
 varexp
