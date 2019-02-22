@@ -1,9 +1,16 @@
 function factorial(n)
-  local ret = 1;
-  if n ~= 0 then
-    ret = n * factorial(n - 1);
+  if n == 0 then
+    return 1;
+  else
+    return n * factorial(n - 1);
   end
-  return ret;
+end
+
+local i = 0
+while i < 10 do
+    i = i + 1
+    print(i)
+    if i == 5 then break end
 end
 
 print(factorial(10))

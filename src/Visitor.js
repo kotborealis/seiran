@@ -1,45 +1,19 @@
-const BaseVisitor = require('../antlr_build/LuaVisitor').LuaVisitor;
+const LuaVisitor = require('../antlr_build/LuaVisitor').LuaVisitor;
+const LuaParser = require('../antlr_build/LuaParser').LuaParser;
 const symbols = require('./symbols');
 const RuntimeError = require('./RuntimeError');
 const Memory = require('./Memory');
+const ReturnManager = require('./ReturnManager');
 
-class Visitor extends BaseVisitor{
+class Visitor extends LuaVisitor{
     constructor(...args){
         super(...args);
 
         this.mem = new Memory;
-
         this.mem.internal.set("print", (args) => console.log(...args));
 
-        this.inside_loop = [];
-        this.break_loop = [];
+        this.return = new ReturnManager;
     }
-
-    insideLoopPush(){
-        this.inside_loop.push(true);
-    }
-
-    insideLoopPop(){
-        this.inside_loop.pop();
-    }
-
-    insideLoop(){
-        return !!this.inside_loop[this.inside_loop.length - 1];
-    }
-
-
-    breakLoopPush(){
-        this.break_loop.push(true);
-    }
-
-    breakLoopPop(){
-        this.break_loop.pop();
-    }
-
-    breakLoop(){
-        return !!this.break_loop[this.break_loop.length - 1];
-    }
-
 
     getLeftRightHandExp(ctx){
         return [0, 1]
@@ -57,23 +31,30 @@ class Visitor extends BaseVisitor{
 
         let i = 0;
         let stat;
-        let value = undefined;
         while((stat = ctx.stat(i++)) !== null){
-            value = stat.accept(this);
+            if(stat instanceof LuaParser.StatBreakContext){
+                if(this.return.insideLoop()){
+                    this.return.breakLoopPush();
+                    break;
+                }
+            }
 
-            if(value === symbols.break && this.insideLoop()){
-                this.breakLoopPush();
-                break;
+            stat.accept(this);
+
+            if(this.return.return()){
+                this.mem.pop();
+                return;
             }
         }
 
+        if(ctx.retstat()){
+            const value = ctx.retstat().accept(this);
 
-        if(ctx.retstat())
-            value = ctx.retstat().accept(this);
+            if(this.return.insideFn())
+                this.return.returnPush(value);
+        }
 
         this.mem.pop();
-
-        return value;
     }
 
     visitRetstat(ctx){
@@ -101,18 +82,18 @@ class Visitor extends BaseVisitor{
         const cond = ctx.exp(0);
         const block = ctx.block(0);
 
-        this.insideLoopPush();
+        this.return.insideLoopPush();
 
         while(cond.accept(this)){
             block.accept(this);
 
-            if(this.breakLoop()){
-                this.breakLoopPop();
+            if(this.return.breakLoop()){
+                this.return.breakLoopPop();
                 break;
             }
         }
 
-        this.insideLoopPop();
+        this.return.insideLoopPop();
     }
 
     visitStatFor(ctx){
@@ -125,20 +106,20 @@ class Visitor extends BaseVisitor{
         const to = ctx.exp(1).accept(this);
         const step = ctx.exp(2) ? ctx.exp(2).accept(this) : 1;
 
-        this.insideLoopPush();
+        this.return.insideLoopPush();
 
         for(let counter = from; counter !== to; counter += step){
             this.mem.setVar(name, counter);
 
             ctx.block(0).accept(this);
 
-            if(this.breakLoop()){
-                this.breakLoopPop();
+            if(this.return.breakLoop()){
+                this.return.breakLoopPop();
                 break;
             }
         }
 
-        this.insideLoopPop();
+        this.return.insideLoopPop();
 
         this.mem.pop();
     }
@@ -173,6 +154,8 @@ class Visitor extends BaseVisitor{
         const fn = (args) => {
             const [params, block] = ctx.funcbody().accept(this);
 
+            this.return.insideFnPush();
+
             this.mem.push();
 
             for(let i = 0; i < Math.min(args.length, params.length); i++){
@@ -180,11 +163,14 @@ class Visitor extends BaseVisitor{
                 this.mem.setVar(params[i], args[i]);
             }
 
-            const val = block.accept(this);
+            block.accept(this);
 
             this.mem.pop();
 
-            return val;
+            this.return.insideFnPop();
+
+            if(this.return.return())
+                return this.return.returnPop();
         };
 
         this.mem.declareVar(name);
