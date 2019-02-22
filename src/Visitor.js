@@ -104,7 +104,7 @@ class Visitor extends BaseVisitor{
         while((stat = ctx.stat(i++)) !== null){
             value = stat.accept(this);
 
-            if(value === symbols.break){
+            if(value === symbols.break && this.insideLoop()){
                 this.breakLoopPush();
                 break;
             }
@@ -156,6 +156,34 @@ class Visitor extends BaseVisitor{
         }
 
         this.insideLoopPop();
+    }
+
+    visitStatFor(ctx){
+        this.memoryStackPush();
+
+        const name = ctx.NAME(0).getText();
+        this.memoryStackDeclare(name);
+
+        const from = ctx.exp(0).accept(this);
+        const to = ctx.exp(1).accept(this);
+        const step = ctx.exp(2) ? ctx.exp(2).accept(this) : 1;
+
+        this.insideLoopPush();
+
+        for(let counter = from; counter !== to; counter += step){
+            this.memoryStackSet(name, counter);
+
+            ctx.block(0).accept(this);
+
+            if(this.breakLoop()){
+                this.breakLoopPop();
+                break;
+            }
+        }
+
+        this.insideLoopPop();
+
+        this.memoryStackPop();
     }
 
     visitStatVarDeclaration(ctx){

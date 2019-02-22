@@ -1,13 +1,6 @@
-local i = 0
-print("start with i = ", i)
-
-function faf()
-    while i < 10 do
-        print("faf i = ", i)
-        i = i + 1
+for i = 1, 10 do
+    for i = 1, 10 do
+        if i == 5 then break end
+        print(i)
     end
 end
-
-faf()
-
-print("end with i = ", i)
