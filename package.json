@@ -2,6 +2,7 @@
   "name": "lua-trans",
   "version": "1.0.0",
   "description": "",
+  "main": "./bin/index.js",
   "scripts": {
     "antlr4": "java -Xmx500M -cp \"/usr/local/lib/antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool",
     "build": "rm -rf ./antlr-build/* && mkdir -p ./antlr_build && npm run antlr4 -- -o ./antlr_build -Dlanguage=JavaScript Lua.g4 -no-listener -visitor",
