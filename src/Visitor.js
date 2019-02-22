@@ -9,6 +9,9 @@ class Visitor extends BaseVisitor{
         this.internal = this.memory_stack[0];
 
         this.internal.set("print", (args) => console.log(...args));
+
+        this.inside_loop = false;
+        this.break_loop = false;
     }
 
     memoryStackPush(){
@@ -51,8 +54,15 @@ class Visitor extends BaseVisitor{
         let i = 0;
         let stat;
         let value = undefined;
-        while((stat = ctx.stat(i++)) !== null)
+        while((stat = ctx.stat(i++)) !== null){
             value = stat.accept(this);
+
+            if(value === symbols.break){
+                this.break_loop = true;
+                break;
+            }
+        }
+
 
         if(ctx.retstat())
             value = ctx.retstat().accept(this);
@@ -64,20 +74,34 @@ class Visitor extends BaseVisitor{
         return ctx.exp() ? ctx.exp().accept(this) : undefined;
     }
 
+    visitStatBreak(ctx){
+        return symbols.break;
+    }
+
     visitStatIf(ctx){
         let i = 0;
         for(let exp = ctx.exp(i); exp; exp = ctx.exp(++i))
             if(exp.accept(this))
                 return ctx.block(i).accept(this);
-        ctx.block(i).accept(this);
+
+        if(ctx.block(i))
+            ctx.block(i).accept(this);
     }
 
     visitStatWhile(ctx){
         const cond = ctx.exp(0);
         const block = ctx.block(0);
 
-        while(cond.accept(this))
+        this.inside_loop = true;
+
+        while(cond.accept(this)){
             block.accept(this);
+
+            if(this.break_loop)
+                break;
+        }
+
+        this.inside_loop = false;
     }
 
     visitStatAssignment(ctx){

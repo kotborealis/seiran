@@ -3,6 +3,7 @@ function while_test(n)
     while i < n do
         i = i + 1
         print(i)
+        if i >= 50 then break end
     end
 end
 
