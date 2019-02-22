@@ -5,14 +5,13 @@ html, body, #root, .App {
 }
 
 form{
-    padding: 15px;
-
     height: 100%;
 
     display: grid;
-    grid-template-rows: 45% auto 45%;
+    grid-template-rows: 500px 50px auto;
 }
 
 pre{
-    overflow: scroll;
+    overflow: auto;
+    padding: 50px;
 }
