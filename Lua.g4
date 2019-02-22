@@ -58,7 +58,7 @@ functioncall
     ;
 
 varexp
-    : variable | '(' exp ')'
+    : variable | functioncall | '(' exp ')'
     ;
 
 variable

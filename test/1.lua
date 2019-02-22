@@ -1,6 +1,9 @@
-for i = 1, 10 do
-    for i = 1, 10 do
-        if i == 5 then break end
-        print(i)
-    end
+function factorial(n)
+  local ret = 1;
+  if n ~= 0 then
+    ret = n * factorial(n - 1);
+  end
+  return ret;
 end
+
+print(factorial(10))

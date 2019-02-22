@@ -218,8 +218,10 @@ class Visitor extends BaseVisitor{
 
             this.memoryStackPush();
 
-            for(let i = 0; i < Math.min(args.length, params.length); i++)
+            for(let i = 0; i < Math.min(args.length, params.length); i++){
+                this.memoryStackDeclare(params[i], args[i]);
                 this.memoryStackSet(params[i], args[i]);
+            }
 
             const val = block.accept(this);
 
