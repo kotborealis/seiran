@@ -1,5 +1,5 @@
-const LuaVisitor = require('../antlr_build/LuaVisitor').LuaVisitor;
-const LuaParser = require('../antlr_build/LuaParser').LuaParser;
+const LuaVisitor = require('../antlr/LuaVisitor').LuaVisitor;
+const LuaParser = require('../antlr/LuaParser').LuaParser;
 const symbols = require('./symbols');
 const RuntimeError = require('./RuntimeError');
 const Memory = require('./Memory');
