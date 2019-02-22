@@ -66,7 +66,7 @@ class Visitor extends BaseVisitor{
 
     visitStatAssignment(ctx){
         const id = ctx.variable().accept(this);
-        const val = this.visitVarOrExp(ctx.exp());
+        const val = ctx.exp().accept(this);
 
         this.memoryStack().set(id, val);
 
@@ -107,7 +107,7 @@ class Visitor extends BaseVisitor{
         let name;
 
         while((name = ctx.NAME(i++)) !== null)
-            namelist.push(name.accept(this));
+            namelist.push(name.getText());
 
         return namelist;
     }
@@ -117,7 +117,8 @@ class Visitor extends BaseVisitor{
     }
 
     visitFunctioncall(ctx){
-        const fn = ctx.varOrExp().accept(this);
+        const fn_name = ctx.variable().accept(this);
+        const fn = this.memoryStackSearch(fn_name);
         const args = ctx.args().accept(this);
         return fn(args);
     }
@@ -138,13 +139,21 @@ class Visitor extends BaseVisitor{
         return explist;
     }
 
-    visitVarOrExp(ctx){
-        if(ctx.variable && ctx.variable())
+    visitStatFunctioncall(ctx){
+        return this.visit(ctx.functioncall());
+    }
+
+    visitExpVarexp(ctx){
+        return this.visit(ctx.varexp());
+    }
+
+    visitVarexp(ctx) {
+        if(ctx.variable())
             return this.memoryStackSearch(ctx.variable().accept(this));
-        else if(ctx.exp && ctx.exp())
-            return ctx.exp().accept(this);
+        else if(ctx.functioncall())
+            return ctx.functioncall().accept(this);
         else
-            return ctx.accept(this);
+            return ctx.exp().accept(this);
     }
 
     visitVariable(ctx){

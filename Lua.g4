@@ -37,12 +37,12 @@ explist
     ;
 
 exp
-    : varOrExp #expVarOrExp
-    | 'nil' #expNil
+    : 'nil' #expNil
     | 'false' #expFalse
     | 'true' #expTrue
     | number #expNumber
     | string #expString
+    | varexp #expVarexp
     | <assoc=right> exp operatorPower exp #expPow
     | operatorUnary exp #expUnaryOp
     | exp operatorMulDivMod exp #expMulDivOp
@@ -54,11 +54,11 @@ exp
     ;
 
 functioncall
-    : varOrExp args
+    : varexp args
     ;
 
-varOrExp
-    : variable | '(' exp ')'
+varexp
+    : variable | functioncall | '(' exp ')'
     ;
 
 variable

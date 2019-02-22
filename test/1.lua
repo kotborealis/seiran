@@ -1,3 +1,5 @@
-a = 10
-b = 20
-c = a+b
+function sum(a, b)
+    return a + b
+end
+
+print(sum(30, sum(10, 20)))
