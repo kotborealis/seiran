@@ -1,5 +1,4 @@
 const fs = require('fs');
-const chen = require('chen.js');
 const antlr4 = require('antlr4');
 
 const selfish = require('./src/selfish');
@@ -8,11 +7,7 @@ const Lexer = require('./antlr_build/LuaLexer').LuaLexer;
 const Parser = require('./antlr_build/LuaParser').LuaParser;
 const Visitor = require('./src/Visitor');
 
-const args = chen.args();
-
-let input = 0;
-if(args.file) input = args.file;
-else if(args._[0]) input = args._[0];
+const input = process.argv[2] || 0;
 
 const stdin = fs.readFileSync(input, "utf-8");
 
