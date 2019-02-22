@@ -7,12 +7,12 @@ const ReturnManager = require('./ReturnManager');
 const Globals = require('./Globals');
 
 class Visitor extends LuaVisitor{
-    constructor({console: console}){
+    constructor({writer}){
         super();
 
         this.mem = new Memory;
 
-        const globals = Globals({console: console});
+        const globals = Globals({writer});
         Object.entries(globals).forEach(fn => this.mem.global.set(...fn));
 
         this.return = new ReturnManager;

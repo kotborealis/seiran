@@ -1,0 +1,18 @@
+html, body, #root, .App {
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+form{
+    padding: 15px;
+
+    height: 100%;
+
+    display: grid;
+    grid-template-rows: 45% auto 45%;
+}
+
+pre{
+    overflow: scroll;
+}
