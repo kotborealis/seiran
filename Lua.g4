@@ -77,13 +77,13 @@ parlist
     : namelist (',' '...')? | '...'
     ;
 
-operatorOr 
+operatorOr
     : 'or';
 
-operatorAnd 
+operatorAnd
     : 'and';
 
-operatorComparison 
+operatorComparison
     : '<' | '>' | '<=' | '>=' | '~=' | '==';
 
 operatorStrcat
@@ -93,10 +93,10 @@ operatorAddSub
     : '+' | '-';
 
 operatorMulDivMod
-    : '*' | '/' | '%' | '//';
+    : '*' | '/' | '%';
 
 operatorUnary
-    : 'not' | '#' | '-' | '~';
+    : 'not' | '#' | '-';
 
 operatorPower
     : '^';
@@ -116,7 +116,7 @@ NAME
     ;
 
 NORMALSTRING
-    : '"' ( EscapeSequence | ~('\\'|'"') )* '"' 
+    : '"' ( EscapeSequence | ~('\\'|'"') )* '"'
     ;
 
 fragment
@@ -126,8 +126,8 @@ NESTED_STR
     ;
 
 FLOAT
-    : Digit+ '.' Digit* 
-    | '.' Digit+ 
+    : Digit+ '.' Digit*
+    | '.' Digit+
     | Digit+
     ;
 
@@ -137,7 +137,7 @@ EscapeSequence
     | '\\' '\r'? '\n'
     | DecimalEscape
     ;
-    
+
 fragment
 DecimalEscape
     : '\\' Digit
@@ -153,7 +153,7 @@ Digit
 COMMENT
     : '--[' NESTED_STR ']' -> channel(HIDDEN)
     ;
-    
+
 LINE_COMMENT
     : '--'
     (                                               // --
@@ -163,8 +163,8 @@ LINE_COMMENT
     ) ('\r\n'|'\r'|'\n'|EOF)
     -> channel(HIDDEN)
     ;
-    
-WS  
+
+WS
     : [ \t\u000C\r\n]+ -> skip
     ;
 

@@ -12,8 +12,7 @@ function selfish (target) {
       return cache.get(value);
     }
   };
-  const proxy = new Proxy(target, handler);
-  return proxy;
+  return new Proxy(target, handler);
 }
 
 module.exports = selfish;
