@@ -5,7 +5,10 @@ class Visitor extends BaseVisitor{
     constructor(...args){
         super(...args);
 
-        this.memory_stack = [];
+        this.memory_stack = [new Map];
+        this.internal = this.memory_stack[0];
+
+        this.internal.set("print", (args) => console.log(...args));
     }
 
     memoryStackPush(){
@@ -28,6 +31,14 @@ class Visitor extends BaseVisitor{
             .map(this.visit.bind(this));
     }
 
+    memoryStackSearch(name){
+        for(let i = this.memory_stack.length - 1; i >= 0; i--)
+            if(this.memory_stack[i].has(name))
+                return this.memory_stack[i].get(name);
+
+        return undefined;
+    }
+
     visitChunk(ctx){
         return this.visitChildren(ctx);
     }
@@ -35,31 +46,124 @@ class Visitor extends BaseVisitor{
     visitBlock(ctx){
         this.memoryStackPush();
 
-        const val = this.visitChildren(ctx);
+        let i = 0;
+        let stat;
+        let value = undefined;
+        while((stat = ctx.stat(i++)) !== null)
+            value = stat.accept(this);
+
+        if(ctx.retstat())
+            value = ctx.retstat().accept(this);
 
         this.memoryStackPop();
 
-        return val;
+        return value;
+    }
+
+    visitRetstat(ctx){
+        return ctx.exp() ? ctx.exp().accept(this) : undefined;
     }
 
     visitStatAssignment(ctx){
-        const id = ctx.variable().getText();
-        const val = this.visit(ctx.exp());
+        const id = ctx.variable().accept(this);
+        const val = this.visitVarOrExp(ctx.exp());
 
         this.memoryStack().set(id, val);
 
         return val;
     }
 
-    visitExpNil(ctx){
-        return null;
+    visitStatFunction(ctx){
+        const name = ctx.funcname().accept(this);
+
+        const fn = (args) => {
+            const [params, block] = ctx.funcbody().accept(this);
+
+            this.memoryStackPush();
+
+            for(let i = 0; i < Math.min(args.length, params.length); i++)
+                this.memoryStack().set(params[i], args[i]);
+
+            const val = block.accept(this);
+
+            this.memoryStackPop();
+
+            return val;
+        };
+
+        this.memoryStack().set(name, fn);
+        return fn;
     }
 
-    visitExpFalse(ctx){
+    visitFuncbody(ctx) {
+        let params = ctx.parlist() ? ctx.parlist().accept(this) : [];
+        return [params, ctx.block()];
+    }
+
+    visitNamelist(ctx){
+        const namelist = [];
+
+        let i = 0;
+        let name;
+
+        while((name = ctx.NAME(i++)) !== null)
+            namelist.push(name.accept(this));
+
+        return namelist;
+    }
+
+    visitParlist(ctx){
+        return ctx.namelist().accept(this);
+    }
+
+    visitFunctioncall(ctx){
+        const fn = ctx.varOrExp().accept(this);
+        const args = ctx.args().accept(this);
+        return fn(args);
+    }
+
+    visitArgs(ctx){
+        return ctx.explist().accept(this);
+    }
+
+    visitExplist(ctx){
+        const explist = [];
+
+        let i = 0;
+        let exp;
+
+        while((exp = ctx.exp(i++)) !== null)
+            explist.push(exp.accept(this));
+
+        return explist;
+    }
+
+    visitVarOrExp(ctx){
+        if(ctx.variable && ctx.variable())
+            return this.memoryStackSearch(ctx.variable().accept(this));
+        else if(ctx.exp && ctx.exp())
+            return ctx.exp().accept(this);
+        else
+            return ctx.accept(this);
+    }
+
+    visitVariable(ctx){
+        return ctx.getText();
+    }
+
+    visitFuncname(ctx){
+        return ctx.getText();
+    }
+
+    visitExpNil(){
+        return symbols.nil;
+    }
+
+    visitExpFalse(){
         return false;
     }
 
-    visitExpTrue(ctx){
+    visitExpTrue(){
         return true;
     }
 
@@ -68,11 +172,7 @@ class Visitor extends BaseVisitor{
     }
 
     visitExpString(ctx){
-        return ctx.getText();
-    }
-
-    visitExpVarArgs(ctx){
-        return symbols.rest;
+        return ctx.getText().slice(1,-1);
     }
 
     visitExpPow(ctx){
@@ -81,7 +181,7 @@ class Visitor extends BaseVisitor{
     }
 
     visitExpUnaryOp(ctx){
-        const value = this.visit(ctx.exp());
+        const value = ctx.exp().accept(this);
 
         switch(ctx.operatorUnary().getText()){
             case 'not':
@@ -107,7 +207,7 @@ class Visitor extends BaseVisitor{
     }
 
     visitExpAddSubOp(ctx){
-        const [lh, rh] = this.getLeftRightHandExp(ctx).map(Number);
+        const [lh, rh] = this.getLeftRightHandExp(ctx);
 
         switch(ctx.operatorAddSub().getText()){
             case '+':

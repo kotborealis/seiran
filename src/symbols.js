@@ -1,3 +1,3 @@
 module.exports = {
-    rest: Symbol('rest')
+    nil: Symbol('nil'),
 };

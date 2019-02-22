@@ -11,17 +11,17 @@ block
 stat
     : ';' #statSemicolon
     | variable '=' exp #statAssignment
+    | 'function' funcname funcbody #statFunction
     | functioncall #statFunctioncall
     | 'break' #statBreak
     | 'while' exp 'do' block 'end' #statWhile
     | 'if' exp 'then' block ('elseif' exp 'then' block)* ('else' block)? 'end' #statIf
     | 'for' NAME '=' exp ',' exp (',' exp)? 'do' block 'end' #statFor
     | 'for' namelist 'in' explist 'do' block 'end' #statForIn
-    | 'function' funcname funcbody #statFunction
     ;
 
 retstat
-    : 'return' explist? ';'?
+    : 'return' exp? ';'?
     ;
 
 funcname
@@ -37,12 +37,12 @@ explist
     ;
 
 exp
-    : 'nil' #expNil
+    : varOrExp #expVarOrExp
+    | 'nil' #expNil
     | 'false' #expFalse
     | 'true' #expTrue
     | number #expNumber
     | string #expString
-    | '...' #expVarArgs
     | <assoc=right> exp operatorPower exp #expPow
     | operatorUnary exp #expUnaryOp
     | exp operatorMulDivMod exp #expMulDivOp
@@ -66,7 +66,7 @@ variable
     ;
 
 args
-    : '(' explist? ')' | string
+    : '(' explist? ')'
     ;
 
 funcbody
@@ -74,7 +74,7 @@ funcbody
     ;
 
 parlist
-    : namelist (',' '...')? | '...'
+    : namelist
     ;
 
 operatorOr

@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "antlr4": "java -Xmx500M -cp \"/usr/local/lib/antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool",
-    "build": "rm -rf ./antlr-build/* && mkdir -p ./antlr_build && npm run antlr4 -- -o ./antlr_build -Dlanguage=JavaScript Lua.g4 -no-listener -visitor"
+    "build": "rm -rf ./antlr-build/* && mkdir -p ./antlr_build && npm run antlr4 -- -o ./antlr_build -Dlanguage=JavaScript Lua.g4 -no-listener -visitor",
+    "antlr4-win": "java -Xmx500M -cp \"C:\\antlr4\\antlr-4.7.2-complete.jar\" org.antlr.v4.Tool",
+    "build-win": "npm run antlr4-win -- -o ./antlr_build -Dlanguage=JavaScript Lua.g4 -no-listener -visitor"
   },
   "author": "",
   "license": "ISC",

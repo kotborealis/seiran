@@ -23,6 +23,6 @@ const parser = new Parser(tokens);
 parser.buildParseTrees = true;
 const tree = parser.chunk();
 
-const visitor = selfish(new Visitor());
+const visitor = new Visitor();
 
 visitor.visitChunk(tree);
