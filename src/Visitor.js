@@ -40,12 +40,14 @@ class Visitor extends BaseVisitor{
     }
 
     visitChunk(ctx){
-        return this.visitChildren(ctx);
+        this.memoryStackPush();
+
+        this.visitChildren(ctx);
+
+        this.memoryStackPop();
     }
 
     visitBlock(ctx){
-        this.memoryStackPush();
-
         let i = 0;
         let stat;
         let value = undefined;
@@ -54,8 +56,6 @@ class Visitor extends BaseVisitor{
 
         if(ctx.retstat())
             value = ctx.retstat().accept(this);
-
-        this.memoryStackPop();
 
         return value;
     }
@@ -70,6 +70,14 @@ class Visitor extends BaseVisitor{
             if(exp.accept(this))
                 return ctx.block(i).accept(this);
         ctx.block(i).accept(this);
+    }
+
+    visitStatWhile(ctx){
+        const cond = ctx.exp(0);
+        const block = ctx.block(0);
+
+        while(cond.accept(this))
+            block.accept(this);
     }
 
     visitStatAssignment(ctx){
