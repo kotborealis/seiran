@@ -4,13 +4,15 @@ const symbols = require('./symbols');
 const RuntimeError = require('./RuntimeError');
 const Memory = require('./Memory');
 const ReturnManager = require('./ReturnManager');
+const globals = require('./globals');
 
 class Visitor extends LuaVisitor{
     constructor(...args){
         super(...args);
 
         this.mem = new Memory;
-        this.mem.global.set("print", (args) => console.log(...args));
+
+        Object.entries(globals).forEach(fn => this.mem.global.set(...fn));
 
         this.return = new ReturnManager;
     }

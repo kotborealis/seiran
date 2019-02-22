@@ -7,4 +7,4 @@ while i<=x do
   i = i + 1
 end
 
-print(x)
+print(sqrt(x))
