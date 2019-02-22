@@ -10,8 +10,32 @@ class Visitor extends BaseVisitor{
 
         this.internal.set("print", (args) => console.log(...args));
 
-        this.inside_loop = false;
-        this.break_loop = false;
+        this.inside_loop = [];
+        this.break_loop = [];
+    }
+
+    insideLoopPush(){
+        this.inside_loop.push(true);
+    }
+
+    insideLoopPop(){
+        this.inside_loop.pop();
+    }
+
+    insideLoop(){
+        return !!this.inside_loop[this.inside_loop.length - 1];
+    }
+
+    breakLoopPush(){
+        this.break_loop.push(true);
+    }
+
+    breakLoopPop(){
+        this.break_loop.pop();
+    }
+
+    breakLoop(){
+        return !!this.break_loop[this.break_loop.length - 1];
     }
 
     memoryStackPush(){
@@ -58,7 +82,7 @@ class Visitor extends BaseVisitor{
             value = stat.accept(this);
 
             if(value === symbols.break){
-                this.break_loop = true;
+                this.breakLoopPush();
                 break;
             }
         }
@@ -74,6 +98,7 @@ class Visitor extends BaseVisitor{
         return ctx.exp() ? ctx.exp().accept(this) : undefined;
     }
 
+    //noinspection JSMethodCanBeStatic
     visitStatBreak(ctx){
         return symbols.break;
     }
@@ -81,8 +106,10 @@ class Visitor extends BaseVisitor{
     visitStatIf(ctx){
         let i = 0;
         for(let exp = ctx.exp(i); exp; exp = ctx.exp(++i))
-            if(exp.accept(this))
-                return ctx.block(i).accept(this);
+            if(exp.accept(this)){
+                ctx.block(i).accept(this);
+                return;
+            }
 
         if(ctx.block(i))
             ctx.block(i).accept(this);
@@ -92,16 +119,18 @@ class Visitor extends BaseVisitor{
         const cond = ctx.exp(0);
         const block = ctx.block(0);
 
-        this.inside_loop = true;
+        this.insideLoopPush();
 
         while(cond.accept(this)){
             block.accept(this);
 
-            if(this.break_loop)
+            if(this.breakLoop()){
+                this.breakLoopPop();
                 break;
+            }
         }
 
-        this.inside_loop = false;
+        this.insideLoopPop();
     }
 
     visitStatAssignment(ctx){
@@ -196,30 +225,37 @@ class Visitor extends BaseVisitor{
             return ctx.exp().accept(this);
     }
 
+    //noinspection JSMethodCanBeStatic
     visitVariable(ctx){
         return ctx.getText();
     }
 
+    //noinspection JSMethodCanBeStatic
     visitFuncname(ctx){
         return ctx.getText();
     }
 
+    //noinspection JSMethodCanBeStatic
     visitExpNil(){
         return symbols.nil;
     }
 
+    //noinspection JSMethodCanBeStatic
     visitExpFalse(){
         return false;
     }
 
+    //noinspection JSMethodCanBeStatic
     visitExpTrue(){
         return true;
     }
 
+    //noinspection JSMethodCanBeStatic
     visitExpNumber(ctx){
         return Number.parseFloat(ctx.getText());
     }
 
+    //noinspection JSMethodCanBeStatic
     visitExpString(ctx){
         return ctx.getText().slice(1,-1);
     }
