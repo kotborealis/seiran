@@ -1,4 +1,4 @@
-module.exports = ({writer = console.log.bind(console)}) => ({
-    print: (args) => writer(...args),
+module.exports = ({print_fn = console.log.bind(console)}) => ({
+    print: (args) => print_fn(...args),
     sqrt: a => Math.sqrt(a)
 });

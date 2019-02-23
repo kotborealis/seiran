@@ -2,19 +2,14 @@ const LuaVisitor = require('../antlr/LuaVisitor').LuaVisitor;
 const LuaParser = require('../antlr/LuaParser').LuaParser;
 const symbols = require('./symbols');
 const RuntimeError = require('./RuntimeError');
-const Memory = require('./Memory');
 const ReturnManager = require('./ReturnManager');
 const Globals = require('./Globals');
 
 class Visitor extends LuaVisitor{
-    constructor({writer}){
+    constructor({mem}){
         super();
 
-        this.mem = new Memory;
-
-        const globals = Globals({writer});
-        Object.entries(globals).forEach(fn => this.mem.global.set(...fn));
-
+        this.mem = mem;
         this.return = new ReturnManager;
     }
 
