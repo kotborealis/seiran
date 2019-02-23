@@ -1,60 +1,83 @@
-import React, {Component} from 'react';
-import './App.css';
+import React, {Component, createRef} from 'react';
+import styles from './App.module.css';
 import Seiran from 'seiran';
-import AceEditor from 'react-ace';
 
 class App extends Component {
     state = {
-        chunk: 'for i = 1, 100 do\n' +
-               '    if i % 15 == 0 then\n' +
-               '        print("FizzBuzz")\n' +
-               '    elseif i % 3 == 0 then\n' +
-               '        print("Fizz")\n' +
-               '    elseif i % 5 == 0 then\n' +
-               '        print("Buzz")\n' +
-               '    else\n' +
-               '        print(i)\n' +
-               '    end\n' +
-               'end',
+        chunk: '',
         log: []
     };
 
-    run = (e) => {
-        e.preventDefault();
+    constructor(...args) {
+        super(...args);
+        this.lua = new Seiran({print_fn: this.log});
 
-        this.setState({log: []});
+        this.consoleEl = createRef();
+    }
 
-        Seiran(this.state.chunk, {writer: this.log});
+    componentDidMount() {
+        this.log("-- Welcome to Lua-like language interpreter REPL");
+    }
+
+    run = () => {
+        const {chunk} = this.state;
+
+        this.setState({chunk: ''});
+
+        this.log(">", chunk);
+        try{
+            const stat = `print(${chunk})`;
+            const tree = this.lua.compile(stat, true);
+            this.lua.evaluate(stat, tree);
+        }
+        catch(e){
+            try{
+                this.lua.evaluate(chunk);
+            }
+            catch(e){
+                this.log(e);
+            }
+        }
     };
 
     log = (...args) => {
         this.setState(({log}) => ({
             log: [...log, args]
-        }));
+        }), () => {
+            const el = this.consoleEl.current;
+            el.scrollTo(0, el.scrollHeight);
+        });
     };
 
-    componentDidMount() {
-        this.run({preventDefault: () => 0});
-    }
-
     render() {
-        const {chunk} = this.state;
+        const {chunk, log} = this.state;
+
         return (
-            <div className="App">
-                <form onSubmit={this.run}>
-                    <AceEditor
-                        value={chunk}
-                        width="100%"
-                        height="500px"
-                        mode="lua"
-                        theme="github"
-                        onChange={value => this.setState({chunk: value})}
+            <div className={styles.App}>
+                <code className={styles.console}
+                      ref={this.consoleEl}>
+                    {log
+                        .map(entry => entry.join(' '))
+                        .map(entry => [<pre className={styles.console_entry}>{entry}</pre>])
+                    }
+                </code>
+
+                <div className={styles['input-container']}>
+                    <label className={styles.prompt}>></label>
+                    <textarea className={styles.input}
+                              rows="1"
+                              placeholder="Type some Lua here..."
+                              value={chunk}
+                              onChange={({target: {value}}) => this.setState({chunk: value})}
+                              onKeyDown={e => {
+                                  const {keyCode, shiftKey} = e;
+                                  if(keyCode === 13 && !shiftKey){
+                                      e.preventDefault();
+                                      this.run();
+                                  }
+                              }}
                     />
-                    <input type="submit" value="Submit"/>
-                    <pre>
-                        {this.state.log.map(l => (Array.isArray(l) ? l.join(' ') : l) + '\n')}
-                    </pre>
-                </form>
+                </div>
             </div>
         );
     }
