@@ -26,7 +26,12 @@ else{
                 lua.evaluate(stat, tree);
             }
             catch(e){
-                lua.evaluate(chunk);
+                try{
+                    lua.evaluate(chunk);
+                }
+                catch(e){
+                    console.error(e);
+                }
             }
             chunk = await line();
         }
