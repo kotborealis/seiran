@@ -179,7 +179,6 @@ class Visitor extends LuaVisitor{
                 return this.return.returnPop();
         };
 
-        this.mem.declareVar(name);
         this.mem.setVar(name, fn);
         return fn;
     }
