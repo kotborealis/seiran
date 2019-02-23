@@ -102,19 +102,30 @@ class Visitor extends LuaVisitor{
 
         const from = ctx.exp(0).accept(this);
         const to = ctx.exp(1).accept(this);
-        const step = ctx.exp(2) ? ctx.exp(2).accept(this) : 1;
+        const step = ctx.exp(2) ? ctx.exp(2).accept(this) : (from < to ? 1 : -1);
 
         this.return.insideLoopPush();
 
-        for(let counter = from; counter !== to; counter += step){
+        const loop_body = (counter) => {
             this.mem.setVar(name, counter);
-
             ctx.block(0).accept(this);
 
             if(this.return.breakLoop()){
                 this.return.breakLoopPop();
-                break;
+                return true;
             }
+            return false;
+        };
+
+        if(step > 0){
+            for(let counter = from; counter <= to; counter += step)
+                if(loop_body(counter))
+                    break;
+        }
+        else{
+            for(let counter = from; counter >= to; counter += step)
+                if(loop_body(counter))
+                    break;
         }
 
         this.return.insideLoopPop();
