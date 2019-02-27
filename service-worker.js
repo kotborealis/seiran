@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/seiran/precache-manifest.2dd81b670213060b88ae3ec8e362569e.js"
+  "/seiran/precache-manifest.3655b4701d02f680c30d01994850d722.js"
 );
 
 workbox.clientsClaim();

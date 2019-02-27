@@ -4,19 +4,19 @@ self.__precacheManifest = [
     "url": "/seiran/static/js/runtime~main.5c04de6c.js"
   },
   {
-    "revision": "8b5e992a443d1f44ca5f",
-    "url": "/seiran/static/js/main.8b5e992a.chunk.js"
+    "revision": "496924a5bc67774e092a",
+    "url": "/seiran/static/js/main.496924a5.chunk.js"
   },
   {
     "revision": "4aa6323dd01e5e3abb11",
     "url": "/seiran/static/js/2.4aa6323d.chunk.js"
   },
   {
-    "revision": "8b5e992a443d1f44ca5f",
+    "revision": "496924a5bc67774e092a",
     "url": "/seiran/static/css/main.f1825e0b.chunk.css"
   },
   {
-    "revision": "3b876cfdba051d06dc6c4aadd88d318b",
+    "revision": "5911d37aa0370b7782bdcd2a326465af",
     "url": "/seiran/index.html"
   }
 ];
