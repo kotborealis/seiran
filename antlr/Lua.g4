@@ -43,6 +43,7 @@ exp
     | 'true' #expTrue
     | number #expNumber
     | string #expString
+    | functiondef #expFunctiondef
     | varexp #expVarexp
     | tableconstructor #expTableconstruct
     | <assoc=right> exp operatorPower exp #expPow
@@ -57,6 +58,10 @@ exp
 
 functioncall
     : variable args
+    ;
+
+functiondef
+    : 'function' funcbody
     ;
 
 varexp

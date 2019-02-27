@@ -360,6 +360,14 @@ class Visitor extends LuaVisitor{
         };
     }
 
+    visitExpFunctiondef(ctx){
+        return this.visit(ctx.functiondef());
+    }
+
+    visitFunctiondef(ctx){
+        return this.fnFromFuncbody(ctx.funcbody());
+    }
+
     visitExpPow(ctx){
         const [lh, rh] = this.getLeftRightHandExp(ctx).map(Number);
         return lh ** rh;

@@ -180,6 +180,12 @@ LuaVisitor.prototype.visitExpUnaryOp = function(ctx) {
 };
 
 
+// Visit a parse tree produced by LuaParser#expFunctiondef.
+LuaVisitor.prototype.visitExpFunctiondef = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
 // Visit a parse tree produced by LuaParser#expComparsionOp.
 LuaVisitor.prototype.visitExpComparsionOp = function(ctx) {
   return this.visitChildren(ctx);
@@ -200,6 +206,12 @@ LuaVisitor.prototype.visitExpAddSubOp = function(ctx) {
 
 // Visit a parse tree produced by LuaParser#functioncall.
 LuaVisitor.prototype.visitFunctioncall = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by LuaParser#functiondef.
+LuaVisitor.prototype.visitFunctiondef = function(ctx) {
   return this.visitChildren(ctx);
 };
 
