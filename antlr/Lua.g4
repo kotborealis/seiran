@@ -10,7 +10,7 @@ block
 
 stat
     : ';' #statSemicolon
-    | 'local' variable ('=' exp)? #statVarDeclaration
+    | 'local' NAME ('=' exp)? #statVarDeclaration
     | variable '=' exp #statAssignment
     | 'function' funcname funcbody #statFunction
     | 'local' 'function' funcname funcbody #statLocalFunction
@@ -44,6 +44,7 @@ exp
     | number #expNumber
     | string #expString
     | varexp #expVarexp
+    | tableconstructor #expTableconstruct
     | <assoc=right> exp operatorPower exp #expPow
     | operatorUnary exp #expUnaryOp
     | exp operatorMulDivMod exp #expMulDivOp
@@ -63,7 +64,7 @@ varexp
     ;
 
 variable
-    : NAME
+    : NAME | variable '[' exp ']' | variable '.' NAME
     ;
 
 args
@@ -76,6 +77,22 @@ funcbody
 
 parlist
     : namelist
+    ;
+
+tableconstructor
+    : '{' fieldlist? '}'
+    ;
+
+fieldlist
+    : field (fieldsep field)* fieldsep?
+    ;
+
+field
+    : '[' exp ']' '=' exp | NAME '=' exp | exp
+    ;
+
+fieldsep
+    : ',' | ';'
     ;
 
 operatorOr

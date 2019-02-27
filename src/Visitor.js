@@ -158,7 +158,7 @@ class Visitor extends LuaVisitor{
     }
 
     visitStatVarDeclaration(ctx){
-        const name = ctx.variable().accept(this);
+        const name = ctx.NAME().getText();
 
         if(this.mem.hasLocalVar(name))
             throw new RuntimeError(`Local variable "${name}" already exists`);
@@ -170,10 +170,10 @@ class Visitor extends LuaVisitor{
     }
 
     visitStatAssignment(ctx){
-        const id = ctx.variable().accept(this);
+        const variable = ctx.variable().accept(this);
         const val = ctx.exp(0).accept(this);
 
-        this.mem.setVar(id, val);
+        variable.set(val);
 
         return val;
     }
@@ -181,7 +181,9 @@ class Visitor extends LuaVisitor{
     visitStatFunction(ctx){
         const name = ctx.funcname().accept(this);
         const fn = this.fnFromFuncbody(ctx.funcbody());
+
         this.mem.setVar(name, fn);
+
         return fn;
     }
 
@@ -220,8 +222,7 @@ class Visitor extends LuaVisitor{
     }
 
     visitFunctioncall(ctx){
-        const fn_name = ctx.variable().accept(this);
-        const fn = this.mem.getVar(fn_name);
+        const fn = ctx.variable().accept(this).get();
         const args = ctx.args().accept(this);
         return fn(args);
     }
@@ -252,7 +253,7 @@ class Visitor extends LuaVisitor{
 
     visitVarexp(ctx) {
         if(ctx.variable())
-            return this.mem.getVar(ctx.variable().accept(this));
+            return ctx.variable().accept(this).get();
         else if(ctx.functioncall())
             return ctx.functioncall().accept(this);
         else
@@ -261,7 +262,30 @@ class Visitor extends LuaVisitor{
 
     //noinspection JSMethodCanBeStatic
     visitVariable(ctx){
-        return ctx.getText();
+        const variable = ctx.variable(0);
+        const exp = ctx.exp(0);
+        const name = ctx.NAME(0);
+
+        if(variable && exp){
+            const v = variable.accept(this).get();
+            return {
+                get: () => v.get(exp.accept(this)),
+                set: (val) => v.set(exp.accept(this), val)
+            };
+        }
+        else if(variable && name){
+            const v = variable.accept(this).get();
+            const n = name.getText();
+            return {
+                get: () => v.get(n),
+                set: (val) => v.set(n, val)
+            };
+        }
+
+        return {
+            get: () => this.mem.getVar(name.getText()),
+            set: (val) => this.mem.setVar(name.getText(), val)
+        };
     }
 
     //noinspection JSMethodCanBeStatic
@@ -292,6 +316,48 @@ class Visitor extends LuaVisitor{
     //noinspection JSMethodCanBeStatic
     visitExpString(ctx){
         return ctx.getText().slice(1,-1);
+    }
+
+    visitExpTableconstruct(ctx){
+        return this.visit(ctx.tableconstructor());
+    }
+
+    visitTableconstructor(ctx){
+        if(!ctx.fieldlist()) return new Map;
+
+        let counter = 1;
+        const table_entries = ctx
+            .fieldlist()
+            .accept(this)
+            .map(({key, value}) => [
+                key === null ? counter++ : key,
+                value
+            ]);
+
+        return new Map(table_entries);
+    }
+
+    visitFieldlist(ctx){
+        const fieldlist = [];
+
+        for(let i = 0, field = ctx.field(i); field !== null; field = ctx.field(++i))
+            fieldlist.push(field.accept(this));
+
+        return fieldlist;
+    }
+
+    visitField(ctx){
+        const exps = [];
+        for(let i = 0, exp = ctx.exp(i); exp !== null; exp = ctx.exp(++i))
+            exps.push(exp.accept(this));
+
+        const has_exp_key = exps.length === 2;
+        const name = ctx.NAME(0);
+
+        return {
+            key: has_exp_key ? exps[0] : (name ? name.getText() : null),
+            value: has_exp_key ? exps[1] : exps[0]
+        };
     }
 
     visitExpPow(ctx){

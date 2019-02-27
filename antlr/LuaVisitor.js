@@ -132,6 +132,12 @@ LuaVisitor.prototype.visitExpTrue = function(ctx) {
 };
 
 
+// Visit a parse tree produced by LuaParser#expTableconstruct.
+LuaVisitor.prototype.visitExpTableconstruct = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
 // Visit a parse tree produced by LuaParser#expOrOp.
 LuaVisitor.prototype.visitExpOrOp = function(ctx) {
   return this.visitChildren(ctx);
@@ -224,6 +230,30 @@ LuaVisitor.prototype.visitFuncbody = function(ctx) {
 
 // Visit a parse tree produced by LuaParser#parlist.
 LuaVisitor.prototype.visitParlist = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by LuaParser#tableconstructor.
+LuaVisitor.prototype.visitTableconstructor = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by LuaParser#fieldlist.
+LuaVisitor.prototype.visitFieldlist = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by LuaParser#field.
+LuaVisitor.prototype.visitField = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by LuaParser#fieldsep.
+LuaVisitor.prototype.visitFieldsep = function(ctx) {
   return this.visitChildren(ctx);
 };
 
