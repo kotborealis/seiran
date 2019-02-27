@@ -19,6 +19,30 @@ class Visitor extends LuaVisitor{
             .map(this.visit.bind(this));
     }
 
+    fnFromFuncbody(funcbody){
+        return (args) => {
+            const [params, block] = funcbody.accept(this);
+
+            this.return.insideFnPush();
+
+            this.mem.push();
+
+            for(let i = 0; i < Math.min(args.length, params.length); i++){
+                this.mem.declareVar(params[i], args[i]);
+                this.mem.setVar(params[i], args[i]);
+            }
+
+            block.accept(this);
+
+            this.mem.pop();
+
+            this.return.insideFnPop();
+
+            if(this.return.return())
+                return this.return.returnPop();
+        };
+    }
+
 
     visitChunk(ctx){
         this.visitChildren(ctx);
@@ -156,28 +180,19 @@ class Visitor extends LuaVisitor{
 
     visitStatFunction(ctx){
         const name = ctx.funcname().accept(this);
+        const fn = this.fnFromFuncbody(ctx.funcbody());
+        this.mem.setVar(name, fn);
+        return fn;
+    }
 
-        const fn = (args) => {
-            const [params, block] = ctx.funcbody().accept(this);
+    visitStatLocalFunction(ctx){
+        const name = ctx.funcname().accept(this);
+        const fn = this.fnFromFuncbody(ctx.funcbody());
 
-            this.return.insideFnPush();
+        if(this.mem.hasLocalVar(name))
+            throw new RuntimeError(`Local function "${name}" already exists`);
 
-            this.mem.push();
-
-            for(let i = 0; i < Math.min(args.length, params.length); i++){
-                this.mem.declareVar(params[i], args[i]);
-                this.mem.setVar(params[i], args[i]);
-            }
-
-            block.accept(this);
-
-            this.mem.pop();
-
-            this.return.insideFnPop();
-
-            if(this.return.return())
-                return this.return.returnPop();
-        };
+        this.mem.declareVar(name);
 
         this.mem.setVar(name, fn);
         return fn;

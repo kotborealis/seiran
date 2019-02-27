@@ -1,10 +1,9 @@
-x = 10
-i = 0
-
-while i<=x do
-  local x = i*2    -- local to the while body
-  print(x)         --> 2, 4, 6, 8, ...
-  i = i + 1
+local function factorial(n)
+  if n == 0 then
+    return 1;
+  else
+    return n * factorial(n - 1);
+  end
 end
 
-print(sqrt(x))
+print(factorial(3))

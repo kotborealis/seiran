@@ -48,6 +48,12 @@ LuaVisitor.prototype.visitStatFunction = function(ctx) {
 };
 
 
+// Visit a parse tree produced by LuaParser#statLocalFunction.
+LuaVisitor.prototype.visitStatLocalFunction = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
 // Visit a parse tree produced by LuaParser#statFunctioncall.
 LuaVisitor.prototype.visitStatFunctioncall = function(ctx) {
   return this.visitChildren(ctx);

@@ -13,6 +13,7 @@ stat
     | 'local' variable ('=' exp)? #statVarDeclaration
     | variable '=' exp #statAssignment
     | 'function' funcname funcbody #statFunction
+    | 'local' 'function' funcname funcbody #statLocalFunction
     | functioncall #statFunctioncall
     | 'break' #statBreak
     | 'while' exp 'do' block 'end' #statWhile
