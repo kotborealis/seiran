@@ -1,3 +1,6 @@
+html, body, #root{
+  height: 100%;
+}
 
 body {
   margin: 0;
@@ -16,3 +19,8 @@ code {
     monospace;
 }
 
+#root{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

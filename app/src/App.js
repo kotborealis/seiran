@@ -42,11 +42,22 @@ class App extends Component {
 
     log = (...args) => {
         this.setState(({log}) => ({
-            log: [...log, args]
+            log: [...log, args.map(this.format)]
         }), () => {
             const el = this.consoleEl.current;
             el.scrollTo(0, el.scrollHeight);
         });
+    };
+
+    format = (val) => {
+        if(val === undefined)
+            return `undefined`;
+        if(val instanceof Map)
+            return `Map(${val.size}) {${[...val.entries()].map(([k,v]) => `${this.format(k)} => ${this.format(v)}`).join(', ')}}`;
+        if(typeof val === "function")
+            return `function`;
+        else
+            return val;
     };
 
     render() {
