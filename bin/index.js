@@ -11,13 +11,19 @@ if(!interactive){
 }
 else{
     const readline = require('async-readline');
-    const {line}= new readline({
+    const rl = new readline({
         input: process.stdin,
         output: process.stdout,
         terminal: false
     });
 
+    rl.setPrompt('> ');
+
+    const {line, prompt, write} = rl;
+
     (async () => {
+        console.log("-- Welcome to Lua-like language interpreter REPL");
+        prompt();
         let chunk = await line();
         while(chunk){
             try{
@@ -33,6 +39,7 @@ else{
                     console.error(e);
                 }
             }
+            prompt();
             chunk = await line();
         }
     })();
