@@ -19,7 +19,7 @@ else{
 
     rl.setPrompt('> ');
 
-    const {line, prompt, write} = rl;
+    const {line, prompt} = rl;
 
     (async () => {
         console.log("-- Welcome to Lua-like language interpreter REPL");
