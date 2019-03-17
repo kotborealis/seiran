@@ -2,7 +2,19 @@
 
 const args = require('chen.js').args();
 const interactive = args.i || args.interactive;
+const help = args.h || args.help;
 const lua = new (require('../lib/index'));
+
+if(help){
+    let bin = process.pkg ? process.argv[0] : `${process.argv[0]} ${process.argv[1]}`;
+
+    console.log(`Lua-like language interpreter`);
+    console.log(`Usage:`);
+    console.log(`* Execute file: ${bin} < script.lua`);
+    console.log(`* REPL: ${bin} -i`);
+    console.log(`* Help: ${bin} -h`);
+    return;
+}
 
 if(!interactive){
     const file = args._[0] || 0;

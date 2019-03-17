@@ -28,3 +28,14 @@
     * add/sub operators
     * comparison operators
     * and/or operators
+    
+## Build executable
+
+To build executables for linux-x64, windows-x86 and windows-x64, run
+`npm run pkg`.
+
+Built executables are located in `./build/` directory.
+
+## Build webapp
+
+To build and deploy webapp, run `npm run depliy`.
