@@ -22,6 +22,6 @@
     "antlr4": "^4.7.2",
     "async-readline": "github:kotborealis/async-readline",
     "chen.js": "^1.0.24",
-    "pkg": "^4.3.7"
+    "pkg": "^4.5.1"
   }
 }
